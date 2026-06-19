@@ -1,0 +1,77 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* surfaces */
+  --color-bg: #f3e7d5;
+  --color-board: #ead9bf;
+  --color-cell: #f5e3cf;
+  --color-text: #5a4636;
+  --color-text-muted: #b6a892;
+  --color-accent: #6e5746;
+
+  /* tile palette */
+  --tile-2: #f9cba7;
+  --tile-4: #f6d98c;
+  --tile-8: #bfd0a8;
+  --tile-16: #a7b486;
+  --tile-32: #a6c8e4;
+  --tile-64: #b7b6e6;
+  --tile-128: #c9a0e9;
+  --tile-256: #e0a6d0;
+  --tile-512: #ee9bc6;
+  --tile-1024: #f3bbc9;
+  --tile-2048: #6e5746;
+
+  /* geometry */
+  --cell-size: clamp(64px, 20vw, 100px);
+  --cell-gap: 4px;
+  --board-padding: 15px;
+  --tile-radius: 12px;
+  --board-size: calc(4 * var(--cell-size) + 5 * var(--cell-gap));
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    "Manrope",
+    "Poppins",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
