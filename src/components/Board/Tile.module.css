@@ -1,0 +1,142 @@
+.tile {
+  position: absolute;
+  top: var(--cell-gap);
+  left: var(--cell-gap);
+  width: var(--cell-size);
+  height: var(--cell-size);
+  transition: transform 130ms ease;
+  z-index: 1;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--tile-radius);
+
+  /* Figma: inset bevel highlights + tight contact shadow.
+     The big soft drop shadow is rendered in a separate layer behind all
+     tiles (see .shadowLayer in Board.module.css) so it never overlaps
+     neighbouring tile faces. */
+  box-shadow:
+    -4px -4px 2px 0 rgba(0, 0, 0, 0.08) inset,
+    4px 4px 2px 0 rgba(255, 255, 255, 0.35) inset,
+    0 2px 3px 0 rgba(67, 51, 32, 0.3);
+}
+
+.value {
+  position: relative;
+  z-index: 1;
+  font-family: 'Manrope', 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: clamp(26px, calc(var(--cell-size) * 0.346), 45px);
+  line-height: 100%;
+  letter-spacing: 0;
+  text-align: center;
+  color: var(--tile-text, var(--color-text));
+}
+
+/* Per-value BG gradients + text (exact values sampled from Figma tile exports) */
+.tile[data-value='2'] .inner {
+  --tile-text: #96694b;
+  background: linear-gradient(135deg, #ffccaa 0%, #fcc8a4 100%);
+}
+
+.tile[data-value='4'] .inner {
+  --tile-text: #906f2b;
+  background: linear-gradient(135deg, #fbdc9c 0%, #f7d694 100%);
+}
+
+.tile[data-value='8'] .inner {
+  --tile-text: #668270;
+  background: linear-gradient(135deg, #c0d2c6 0%, #bed1c5 100%);
+}
+
+.tile[data-value='16'] .inner {
+  --tile-text: #777755;
+  background: linear-gradient(135deg, #c7c9ae 0%, #c5c5a9 100%);
+}
+
+.tile[data-value='32'] .inner {
+  --tile-text: #697a97;
+  background: linear-gradient(135deg, #c3d3ed 0%, #b7c9e7 100%);
+}
+
+.tile[data-value='64'] .inner {
+  --tile-text: #6d6b93;
+  background: linear-gradient(135deg, #c3c0e6 0%, #b4b5e1 100%);
+}
+
+.tile[data-value='128'] .inner {
+  --tile-text: #8665a3;
+  background: linear-gradient(135deg, #c9aaff 0%, #e4a4fc 100%);
+}
+
+.tile[data-value='256'] .inner {
+  --tile-text: #a05da1;
+  background: linear-gradient(135deg, #e79eee 0%, #ec98de 100%);
+}
+
+.tile[data-value='512'] .inner {
+  --tile-text: #8e5081;
+  background: linear-gradient(135deg, #e895d7 0%, #e597d5 100%);
+}
+
+.tile[data-value='1024'] .inner {
+  --tile-text: #a75253;
+  background: linear-gradient(135deg, #f8a7a8 0%, #f79fa1 100%);
+}
+
+.tile[data-value='2048'] .inner,
+.tile[data-value='4096'] .inner,
+.tile[data-value='8192'] .inner {
+  --tile-text: #ffffff;
+  background: linear-gradient(135deg, #775e3a 0%, #6d5634 100%);
+}
+
+.new {
+  animation: pop-in 150ms ease;
+}
+
+.merged {
+  animation: pop-merge 150ms ease;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pop-merge {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+
+  .new,
+  .merged {
+    animation: none;
+  }
+}

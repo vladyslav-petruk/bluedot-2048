@@ -1,0 +1,70 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.logo {
+  width: 100px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.scores {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex: 1;
+}
+
+.newGame {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(134.07deg, #a15a1b 41.37%, #956940 93.46%);
+  color: #fff;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow:
+    -3px -3px 2px 0 rgba(0, 0, 0, 0.12) inset,
+    3px 3px 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 1px 2px 0 rgba(67, 51, 32, 0.35);
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.newGame:hover {
+  opacity: 0.92;
+}
+
+.newGame:active {
+  transform: scale(0.98);
+}
+
+.newGame:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .header {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .logo {
+    order: 1;
+  }
+
+  .scores {
+    order: 3;
+    width: 100%;
+  }
+
+  .newGame {
+    order: 2;
+  }
+}
