@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { GRID_SIZE } from '../../game/constants';
+import { cloneTile } from '../../game/engine';
 import { useSwipe } from '../../hooks/useSwipe';
 import type { Direction, GameStatus, Tile } from '../../types/game';
 import TileComponent from './Tile';
@@ -9,10 +10,6 @@ interface BoardProps {
   tiles: Tile[];
   onSwipe: (direction: Direction) => void;
   status: GameStatus;
-}
-
-function cloneTile(tile: Tile): Tile {
-  return { ...tile, mergedFrom: tile.mergedFrom ? [...tile.mergedFrom] : null };
 }
 
 export default function Board({ tiles, onSwipe, status }: BoardProps) {
@@ -52,7 +49,7 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
     return undefined;
   }, [tiles]);
 
-  const { elementRef, onTouchStart, onTouchMove, onTouchEnd, onTouchCancel } = useSwipe(onSwipe);
+  const { elementRef, onTouchStart, onTouchEnd, onTouchCancel } = useSwipe(onSwipe);
 
   const cells = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => ({
     id: index,
@@ -65,7 +62,6 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
       ref={elementRef}
       className={styles.boardWrapper}
       onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchCancel}
     >

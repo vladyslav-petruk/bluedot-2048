@@ -20,7 +20,7 @@ export default function Overlay({ status, score, onContinue, onNewGame }: Overla
           {isWin ? 'You Win!' : 'Game Over'}
         </h2>
 
-        {!isWin && <p className={styles.score}>Score: {score}</p>}
+        <p className={styles.score}>Score: {score}</p>
 
         <div className={styles.actions}>
           {isWin && (

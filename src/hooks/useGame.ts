@@ -9,7 +9,6 @@ import { STORAGE_KEYS } from '../game/constants';
 import type { Direction, GameSnapshot, GameState, GameStatus } from '../types/game';
 
 type GameAction =
-  | { type: 'LOAD'; payload: Partial<GameState> | null }
   | { type: 'NEW_GAME' }
   | { type: 'MOVE'; payload: Direction }
   | { type: 'UNDO' }
@@ -56,9 +55,10 @@ function persistGame(state: GameState) {
   }
 }
 
-function createFreshState(best = readBestScore()): GameState {
+function createFreshState(best: number): GameState {
   const idGen = createIdGenerator();
   const tiles = createInitialTiles(idGen);
+  const maxId = tiles.reduce((max, t) => Math.max(max, t.id), 0);
 
   return {
     tiles,
@@ -67,7 +67,7 @@ function createFreshState(best = readBestScore()): GameState {
     status: 'playing',
     keepPlaying: false,
     history: [],
-    nextId: Math.max(...tiles.map((t) => t.id), 0) + 1,
+    nextId: maxId + 1,
   };
 }
 
@@ -88,13 +88,6 @@ function hydrateState(saved: Partial<GameState>, best: number): GameState {
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
-    case 'LOAD': {
-      const saved = action.payload;
-      if (!saved) return createFreshState(state.best);
-
-      return hydrateState(saved, state.best);
-    }
-
     case 'NEW_GAME': {
       const fresh = createFreshState(state.best);
       persistGame(fresh);
@@ -188,6 +181,7 @@ export function useGame() {
     return saved ? hydrateState(saved, best) : createFreshState(best);
   });
 
+  // Ref used to read current state inside event listeners without stale closures.
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -201,6 +195,7 @@ export function useGame() {
 
   const handleNewGame = useCallback(() => {
     dispatch({ type: 'NEW_GAME' });
+    // Bump key to remount Board and reset ghost-tile animation state.
     setGameKey((key) => key + 1);
   }, []);
 

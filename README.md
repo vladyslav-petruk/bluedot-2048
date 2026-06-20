@@ -4,7 +4,7 @@ A single-page 2048 game built with **React + TypeScript** and Vite, styled to ma
 
 ## Live demo
 
-Deploy the `dist` folder to Vercel, Netlify, or any static host. After deploying, add your live URL here.
+[https://bluedot-2048.vercel.app](https://bluedot-2048.vercel.app)
 
 ## Run locally
 
@@ -29,8 +29,8 @@ npm test         # run game engine unit tests
 
 The game is split into two layers:
 
-1. **Pure game engine** (`src/game/engine.js`) — board state, tile spawning, move/merge logic, win/game-over detection. Fully side-effect free and covered by Vitest unit tests.
-2. **React UI layer** (`src/hooks/useGame.js` + components) — state orchestration via `useReducer`, keyboard and swipe input, unlimited undo history, and `localStorage` persistence for best score and resumable games.
+1. **Pure game engine** (`src/game/engine.ts`) — board state, tile spawning, move/merge logic, win/game-over detection. Fully side-effect free and covered by Vitest unit tests.
+2. **React UI layer** (`src/hooks/useGame.ts` + components) — state orchestration via `useReducer`, keyboard and swipe input, unlimited undo history, and `localStorage` persistence for best score and resumable games.
 
 ### Key decisions
 
@@ -51,17 +51,6 @@ The game is split into two layers:
 
 ## Known limitations
 
-- Font is Poppins (Google Fonts) as an approximation of the design wordmark; swap if the exact brand font is available.
+- Font is Manrope/Poppins via Google Fonts; swap for the exact brand font if available.
 - Merge animation shows a brief pop on the survivor tile; absorbed-tile ghost rendering is simplified.
-- Deploy URL must be added after hosting setup.
-
-## Deploy
-
-### Vercel / Netlify
-
-1. Push this repo to GitHub.
-2. Import the project in Vercel or Netlify.
-3. Build command: `npm run build`
-4. Output directory: `dist`
-
-No extra configuration required — Vite's default output works out of the box.
+- Large undo histories can approach the ~5 MB `localStorage` limit on some browsers.

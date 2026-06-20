@@ -6,7 +6,9 @@ import {
 } from './constants';
 import type { Direction, IdGenerator, MoveResult, Tile } from '../types/game';
 
-function cloneTile(tile: Tile): Tile {
+type Grid = Array<Array<Tile | null>>;
+
+export function cloneTile(tile: Tile): Tile {
   return {
     id: tile.id,
     value: tile.value,
@@ -44,8 +46,8 @@ function pickRandomCell(cells: Array<{ row: number; col: number }>) {
   return cells[Math.floor(Math.random() * cells.length)];
 }
 
-function buildGrid(tiles: Tile[]): Array<Array<Tile | null>> {
-  const grid: Array<Array<Tile | null>> = Array.from({ length: GRID_SIZE }, () =>
+function buildGrid(tiles: Tile[]): Grid {
+  const grid: Grid = Array.from({ length: GRID_SIZE }, () =>
     Array.from({ length: GRID_SIZE }, () => null),
   );
 
@@ -88,34 +90,52 @@ function slideAndMergeLine(line: Tile[], mergedIds: Set<number>) {
   return { result, gained, won, lineMoved };
 }
 
-function processHorizontalLine(
-  grid: Array<Array<Tile | null>>,
-  row: number,
-  direction: 'left' | 'right',
+/**
+ * Process one row (axis='row') or column (axis='col') of the grid in place.
+ * `reverse=true` processes right-to-left or bottom-to-top so the merge
+ * direction always matches the slide direction.
+ */
+function processLine(
+  grid: Grid,
+  lineIndex: number,
+  axis: 'row' | 'col',
+  reverse: boolean,
   mergedIds: Set<number>,
 ) {
-  const cols =
-    direction === 'left'
-      ? [...Array(GRID_SIZE).keys()]
-      : [...Array(GRID_SIZE).keys()].reverse();
+  const indices = [...Array(GRID_SIZE).keys()];
+  if (reverse) indices.reverse();
 
-  const line = cols.map((col) => grid[row][col]).filter((tile): tile is Tile => Boolean(tile));
-  if (line.length === 0) {
-    return { gained: 0, won: false, moved: false };
-  }
+  const getCell = (i: number): Tile | null =>
+    axis === 'row' ? grid[lineIndex][i] : grid[i][lineIndex];
 
-  const before = new Map(line.map((tile) => [tile.id, { row: tile.row, col: tile.col, value: tile.value }]));
+  const setCell = (i: number, tile: Tile | null) => {
+    if (axis === 'row') {
+      grid[lineIndex][i] = tile;
+    } else {
+      grid[i][lineIndex] = tile;
+    }
+  };
+
+  const getPos = (tile: Tile) => (axis === 'row' ? tile.col : tile.row);
+
+  const line = indices.map(getCell).filter((tile): tile is Tile => Boolean(tile));
+  if (line.length === 0) return { gained: 0, won: false, moved: false };
+
+  const before = new Map(line.map((tile) => [tile.id, getPos(tile)]));
   const { result, gained, won, lineMoved } = slideAndMergeLine(line, mergedIds);
 
-  cols.forEach((col) => {
-    grid[row][col] = null;
-  });
+  indices.forEach((i) => setCell(i, null));
 
-  result.forEach((tile, index) => {
-    const newCol = direction === 'left' ? index : GRID_SIZE - 1 - index;
-    tile.row = row;
-    tile.col = newCol;
-    grid[row][newCol] = tile;
+  result.forEach((tile, resultIndex) => {
+    const newPos = indices[resultIndex];
+    if (axis === 'row') {
+      tile.row = lineIndex;
+      tile.col = newPos;
+    } else {
+      tile.row = newPos;
+      tile.col = lineIndex;
+    }
+    setCell(newPos, tile);
   });
 
   const moved =
@@ -123,54 +143,13 @@ function processHorizontalLine(
     result.length !== line.length ||
     result.some((tile) => {
       const prev = before.get(tile.id);
-      return !prev || prev.col !== tile.col || prev.value !== tile.value;
+      return prev === undefined || prev !== getPos(tile);
     });
 
   return { gained, won, moved };
 }
 
-function processVerticalLine(
-  grid: Array<Array<Tile | null>>,
-  col: number,
-  direction: 'up' | 'down',
-  mergedIds: Set<number>,
-) {
-  const rows =
-    direction === 'up'
-      ? [...Array(GRID_SIZE).keys()]
-      : [...Array(GRID_SIZE).keys()].reverse();
-
-  const line = rows.map((row) => grid[row][col]).filter((tile): tile is Tile => Boolean(tile));
-  if (line.length === 0) {
-    return { gained: 0, won: false, moved: false };
-  }
-
-  const before = new Map(line.map((tile) => [tile.id, { row: tile.row, col: tile.col, value: tile.value }]));
-  const { result, gained, won, lineMoved } = slideAndMergeLine(line, mergedIds);
-
-  rows.forEach((row) => {
-    grid[row][col] = null;
-  });
-
-  result.forEach((tile, index) => {
-    const newRow = direction === 'up' ? index : GRID_SIZE - 1 - index;
-    tile.row = newRow;
-    tile.col = col;
-    grid[newRow][col] = tile;
-  });
-
-  const moved =
-    lineMoved ||
-    result.length !== line.length ||
-    result.some((tile) => {
-      const prev = before.get(tile.id);
-      return !prev || prev.row !== tile.row || prev.value !== tile.value;
-    });
-
-  return { gained, won, moved };
-}
-
-function collectTiles(grid: Array<Array<Tile | null>>): Tile[] {
+function collectTiles(grid: Grid): Tile[] {
   const tiles: Tile[] = [];
 
   for (let row = 0; row < GRID_SIZE; row += 1) {
@@ -225,40 +204,25 @@ export function move(tiles: Tile[], direction: Direction, idGen: IdGenerator): M
   let moved = false;
   let won = false;
 
-  if (direction === 'left' || direction === 'right') {
-    for (let row = 0; row < GRID_SIZE; row += 1) {
-      const lineResult = processHorizontalLine(grid, row, direction, mergedIds);
-      gained += lineResult.gained;
-      moved = moved || lineResult.moved;
-      won = won || lineResult.won;
-    }
-  } else {
-    for (let col = 0; col < GRID_SIZE; col += 1) {
-      const lineResult = processVerticalLine(grid, col, direction, mergedIds);
-      gained += lineResult.gained;
-      moved = moved || lineResult.moved;
-      won = won || lineResult.won;
-    }
+  const isHorizontal = direction === 'left' || direction === 'right';
+  const reverse = direction === 'right' || direction === 'down';
+  const axis = isHorizontal ? 'row' : 'col';
+
+  for (let lineIndex = 0; lineIndex < GRID_SIZE; lineIndex += 1) {
+    const lineResult = processLine(grid, lineIndex, axis, reverse, mergedIds);
+    gained += lineResult.gained;
+    moved = moved || lineResult.moved;
+    won = won || lineResult.won;
   }
 
   if (!moved) {
-    return {
-      tiles: cloneTiles(tiles),
-      gained: 0,
-      moved: false,
-      won: false,
-    };
+    return { tiles: cloneTiles(tiles), gained: 0, moved: false, won: false };
   }
 
   const nextTiles = collectTiles(grid);
   const spawnResult = spawnTile(nextTiles, idGen);
 
-  return {
-    tiles: spawnResult.tiles,
-    gained,
-    moved: true,
-    won,
-  };
+  return { tiles: spawnResult.tiles, gained, moved: true, won };
 }
 
 export function canMove(tiles: Tile[]): boolean {
