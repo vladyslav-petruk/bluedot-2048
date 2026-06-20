@@ -144,6 +144,28 @@ describe('gameReducer', () => {
     expect(next.keepPlaying).toBe(true);
   });
 
+  it('goes to game over on continue when the winning move filled the board', () => {
+    // A winning move can leave a full board with no moves remaining. Dismissing
+    // the win overlay must surface game over, not a stuck "playing" board.
+    const values = [
+      [2048, 4, 2, 4],
+      [4, 2, 4, 2],
+      [2, 4, 2, 4],
+      [4, 2, 4, 2],
+    ];
+    const tiles = values.flatMap((row, rowIndex) =>
+      row.map((value, colIndex) =>
+        makeTile(rowIndex * 4 + colIndex + 1, value, rowIndex, colIndex),
+      ),
+    );
+    const state = makeState({ tiles, status: 'won', keepPlaying: false });
+
+    const next = gameReducer(state, { type: 'CONTINUE' });
+
+    expect(next.keepPlaying).toBe(true);
+    expect(next.status).toBe('over');
+  });
+
   it('blocks moves after game over', () => {
     const tiles = [makeTile(1, 2, 0, 0), makeTile(2, 4, 0, 1)];
     const state = makeState({ tiles, status: 'over' });

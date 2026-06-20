@@ -105,7 +105,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         keepPlaying: true,
-        status: 'playing',
+        // A winning move can fill the board with no moves left. Re-check so
+        // dismissing the win overlay surfaces game over instead of a stuck
+        // "playing" board that silently rejects every input.
+        status: canMove(state.tiles) ? 'playing' : 'over',
       };
 
     default:
