@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { WIN_VALUE } from '../game/constants';
-import { createFreshState, gameReducer } from './useGame';
+import { WIN_VALUE } from './constants';
+import { createFreshState, gameReducer } from './reducer';
 import type { GameState, Tile } from '../types/game';
 
 function makeTile(id: number, value: number, row: number, col: number): Tile {
@@ -49,6 +49,18 @@ describe('gameReducer', () => {
     expect(next.history).toHaveLength(1);
     expect(next.history[0].score).toBe(10);
     expect(next.history[0].tiles).toHaveLength(2);
+  });
+
+  it('stores history snapshots with animation flags cleared', () => {
+    const tiles = [
+      { ...makeTile(1, 2, 0, 0), isNew: true },
+      { ...makeTile(2, 2, 0, 1), mergedFrom: [3, 4] },
+    ];
+    const state = makeState({ tiles, score: 0, nextId: 5, history: [] });
+
+    const next = gameReducer(state, { type: 'MOVE', payload: 'left' });
+
+    expect(next.history[0].tiles.every((t) => !t.isNew && t.mergedFrom === null)).toBe(true);
   });
 
   it('sets won status when 2048 is created', () => {
@@ -106,6 +118,21 @@ describe('gameReducer', () => {
     expect(next.tiles).toHaveLength(1);
     expect(next.status).toBe('playing');
     expect(next.history).toHaveLength(0);
+  });
+
+  it('clears animation flags on undo-restored tiles', () => {
+    const previousTiles = [{ ...makeTile(1, 2, 0, 0), isNew: true, mergedFrom: [2, 3] }];
+    const state = makeState({
+      tiles: [makeTile(9, 4, 0, 0)],
+      score: 20,
+      status: 'playing',
+      history: [{ tiles: previousTiles, score: 10 }],
+    });
+
+    const next = gameReducer(state, { type: 'UNDO' });
+
+    expect(next.tiles[0].isNew).toBe(false);
+    expect(next.tiles[0].mergedFrom).toBeNull();
   });
 
   it('allows continue after win', () => {

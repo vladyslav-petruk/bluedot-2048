@@ -3,6 +3,7 @@ import {
   HISTORY_PERSIST_LIMIT,
   STORAGE_KEYS,
 } from './constants';
+import { clearAnimationFlags } from './engine';
 import type { GameSnapshot, GameState, GameStatus, Tile } from '../types/game';
 
 export const SCHEMA_VERSION = 1;
@@ -51,14 +52,6 @@ function isValidSnapshot(value: unknown): value is GameSnapshot {
   if (!Array.isArray(snapshot.tiles) || !isFiniteNumber(snapshot.score)) return false;
 
   return snapshot.tiles.every(isValidTile);
-}
-
-function clearAnimationFlags(tiles: Tile[]): Tile[] {
-  return tiles.map((tile) => ({
-    ...tile,
-    isNew: false,
-    mergedFrom: null,
-  }));
 }
 
 export function validateSavedGame(raw: unknown): PersistedGame | null {

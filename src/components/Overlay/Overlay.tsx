@@ -33,10 +33,14 @@ export default function Overlay({ status, score, onContinue, onNewGame }: Overla
     focusables[0]?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // The win overlay is dismissible (you may keep playing), so Escape
+      // resumes the game. Game over has no "close" action, so Escape is a
+      // no-op there and focus simply stays trapped inside the dialog.
       if (event.key === 'Escape') {
-        event.preventDefault();
-        const buttons = getFocusableElements(dialog);
-        buttons[buttons.length - 1]?.focus();
+        if (status === 'won') {
+          event.preventDefault();
+          onContinue();
+        }
         return;
       }
 
@@ -64,7 +68,7 @@ export default function Overlay({ status, score, onContinue, onNewGame }: Overla
       document.removeEventListener('keydown', handleKeyDown);
       previousFocusRef.current?.focus();
     };
-  }, [status]);
+  }, [status, onContinue]);
 
   if (status !== 'won' && status !== 'over') return null;
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GRID_SIZE } from '../../game/constants';
+import { GRID_SIZE, MOVE_ANIMATION_MS } from '../../game/constants';
 import { cloneTile } from '../../game/engine';
 import { useSwipe } from '../../hooks/useSwipe';
 import type { Direction, GameStatus, Tile } from '../../types/game';
@@ -41,7 +41,7 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
       // Ghost tiles are derived from the previous render and cleared on a timer.
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional merge animation
       setGhostTiles(ghosts);
-      const timer = window.setTimeout(() => setGhostTiles([]), 140);
+      const timer = window.setTimeout(() => setGhostTiles([]), MOVE_ANIMATION_MS);
       prevTilesRef.current = tiles;
       return () => window.clearTimeout(timer);
     }

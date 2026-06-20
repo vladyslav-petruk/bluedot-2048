@@ -22,7 +22,7 @@ Open [http://localhost:5173](http://localhost:5173).
 ```bash
 npm run build    # production build to dist/
 npm run preview  # preview production build
-npm test         # run unit tests (engine, reducer, persistence)
+npm test         # run tests (engine, reducer, persistence, swipe, App)
 npm run lint     # ESLint
 npm run format   # Prettier
 ```
@@ -32,7 +32,8 @@ npm run format   # Prettier
 The game is split into two layers:
 
 1. **Pure game engine** (`src/game/engine.ts`) — board state, tile spawning, move/merge logic, win/game-over detection. Deterministic when `idGen` and `rng` are injected; covered by Vitest unit tests.
-2. **React UI layer** (`src/hooks/useGame.ts` + components) — state orchestration via a pure `useReducer`, keyboard and swipe input, unlimited in-memory undo history, and validated `localStorage` persistence for best score and resumable games.
+2. **Pure reducer** (`src/game/reducer.ts`) — all state transitions (`MOVE` / `UNDO` / `NEW_GAME` / `CONTINUE`) as a side-effect-free `useReducer`, plus a single `canAcceptInput` guard shared with the input layer.
+3. **React UI layer** (`src/hooks/useGame.ts` + components) — wires the reducer to keyboard and swipe input, exposes unlimited in-memory undo history, and persists best score / resumable games to a validated `localStorage` schema.
 
 ### Key decisions
 

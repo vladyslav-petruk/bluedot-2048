@@ -58,7 +58,7 @@ function buildGrid(tiles: Tile[]): Grid {
   return grid;
 }
 
-function clearAnimationFlags(tiles: Tile[]): Tile[] {
+export function clearAnimationFlags(tiles: Tile[]): Tile[] {
   return tiles.map((tile) => ({
     ...tile,
     isNew: false,

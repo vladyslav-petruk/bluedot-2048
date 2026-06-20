@@ -4,7 +4,7 @@
   left: var(--cell-gap);
   width: var(--cell-size);
   height: var(--cell-size);
-  transition: transform 130ms ease;
+  transition: transform var(--tile-transition, 140ms) ease;
   z-index: 1;
 }
 
