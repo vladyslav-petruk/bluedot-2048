@@ -1,5 +1,7 @@
 .boardWrapper {
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .board {
@@ -45,18 +47,21 @@
 
 .tileShadow {
   position: absolute;
-  inset: 0;
+  inset: 6%;
   border-radius: var(--tile-radius);
-  background: linear-gradient(134.07deg, #a15a1b 41.37%, #956940 93.46%);
-  opacity: 0.5;
-  filter: blur(10px);
-  transform: translateY(12px) scale(0.95);
+  background: transparent;
+  box-shadow:
+    0 10px 14px 0 rgba(101, 67, 35, 0.22),
+    0 4px 6px 0 rgba(101, 67, 35, 0.14);
+  transform: translateY(8px) scale(0.94);
 }
 
 .tileShadow[data-value='2048'],
 .tileShadow[data-value='4096'],
 .tileShadow[data-value='8192'] {
-  opacity: 0.28;
+  box-shadow:
+    0 8px 12px 0 rgba(67, 51, 32, 0.18),
+    0 3px 5px 0 rgba(67, 51, 32, 0.1);
 }
 
 .blocker {

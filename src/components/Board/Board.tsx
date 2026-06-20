@@ -52,7 +52,7 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
     return undefined;
   }, [tiles]);
 
-  const { onTouchStart, onTouchEnd } = useSwipe(onSwipe);
+  const { elementRef, onTouchStart, onTouchMove, onTouchEnd, onTouchCancel } = useSwipe(onSwipe);
 
   const cells = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => ({
     id: index,
@@ -62,9 +62,12 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
 
   return (
     <div
+      ref={elementRef}
       className={styles.boardWrapper}
       onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
     >
       <div className={styles.board} aria-label="2048 game board">
         {cells.map(({ id, row, col }) => (
