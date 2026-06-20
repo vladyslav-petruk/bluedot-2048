@@ -10,7 +10,7 @@ export default function ScoreBox({ label, value, variant = 'current' }: ScoreBox
   const className = `${styles.scoreBox} ${variant === 'best' ? styles.best : styles.current}`;
 
   return (
-    <div className={className}>
+    <div className={className} aria-live={variant === 'current' ? 'polite' : undefined}>
       <span className={styles.label}>{label}</span>
       <span className={styles.value}>{value}</span>
     </div>

@@ -22,22 +22,25 @@ Open [http://localhost:5173](http://localhost:5173).
 ```bash
 npm run build    # production build to dist/
 npm run preview  # preview production build
-npm test         # run game engine unit tests
+npm test         # run unit tests (engine, reducer, persistence)
+npm run lint     # ESLint
+npm run format   # Prettier
 ```
 
 ## Approach
 
 The game is split into two layers:
 
-1. **Pure game engine** (`src/game/engine.ts`) — board state, tile spawning, move/merge logic, win/game-over detection. Fully side-effect free and covered by Vitest unit tests.
-2. **React UI layer** (`src/hooks/useGame.ts` + components) — state orchestration via `useReducer`, keyboard and swipe input, unlimited undo history, and `localStorage` persistence for best score and resumable games.
+1. **Pure game engine** (`src/game/engine.ts`) — board state, tile spawning, move/merge logic, win/game-over detection. Deterministic when `idGen` and `rng` are injected; covered by Vitest unit tests.
+2. **React UI layer** (`src/hooks/useGame.ts` + components) — state orchestration via a pure `useReducer`, keyboard and swipe input, unlimited in-memory undo history, and validated `localStorage` persistence for best score and resumable games.
 
 ### Key decisions
 
 - **Tile identity model** — each tile has a stable `id` so React can animate slides by reusing DOM nodes and updating `transform: translate(...)`.
-- **Flat tile array** — only occupied cells are stored; the 16-cell background grid is static CSS.
-- **Undo** — full move history stored as `{ tiles, score }` snapshots before every valid move.
-- **Persistence** — `localStorage` keys `bluedot2048:best` and `bluedot2048:game` survive page reloads.
+- **Flat tile array** — only occupied cells are stored; the background grid is static CSS driven by `GRID_SIZE`.
+- **Undo** — full move history stored as `{ tiles, score }` snapshots before every valid move (unlimited in memory for the current session).
+- **Persistence** — `localStorage` keys `bluedot2048:best` and `bluedot2048:game` survive page reloads. Saved game payloads include a schema version and are validated at load time; invalid data falls back to a fresh game.
+- **History cap on disk** — only the most recent 50 undo snapshots are written to `localStorage` to avoid storage limits; in-session undo remains unlimited.
 
 ## Features
 
@@ -53,4 +56,5 @@ The game is split into two layers:
 
 - Font is Manrope/Poppins via Google Fonts; swap for the exact brand font if available.
 - Merge animation shows a brief pop on the survivor tile; absorbed-tile ghost rendering is simplified.
-- Large undo histories can approach the ~5 MB `localStorage` limit on some browsers.
+- Undo history persisted to `localStorage` is capped at 50 snapshots; older undo steps are lost after a page reload, but remain available during the current session.
+- Saved games from older schema versions are ignored until a migration is added.

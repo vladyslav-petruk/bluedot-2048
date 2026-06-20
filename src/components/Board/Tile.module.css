@@ -17,6 +17,8 @@
   width: 100%;
   height: 100%;
   border-radius: var(--tile-radius);
+  background: linear-gradient(135deg, #ffccaa 0%, #fcc8a4 100%);
+  --tile-text: #96694b;
 
   /* Figma: inset bevel highlights + tight contact shadow.
      The big soft drop shadow is rendered in a separate layer behind all
@@ -96,6 +98,13 @@
 .tile[data-value='8192'] .inner {
   --tile-text: #ffffff;
   background: linear-gradient(135deg, #775e3a 0%, #6d5634 100%);
+}
+
+.tile[data-value='16384'] .inner,
+.tile[data-value='32768'] .inner,
+.tile[data-value='65536'] .inner {
+  --tile-text: #ffffff;
+  background: linear-gradient(135deg, #4a3824 0%, #3d2f1f 100%);
 }
 
 .new {

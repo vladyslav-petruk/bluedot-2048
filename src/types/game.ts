@@ -34,3 +34,11 @@ export interface GameState {
 }
 
 export type IdGenerator = () => number;
+
+export type RandomFn = () => number;
+
+export type GameAction =
+  | { type: 'NEW_GAME' }
+  | { type: 'MOVE'; payload: Direction }
+  | { type: 'UNDO' }
+  | { type: 'CONTINUE' };

@@ -5,57 +5,20 @@ import {
   createInitialTiles,
   move,
 } from '../game/engine';
-import { STORAGE_KEYS } from '../game/constants';
-import type { Direction, GameSnapshot, GameState, GameStatus } from '../types/game';
-
-type GameAction =
-  | { type: 'NEW_GAME' }
-  | { type: 'MOVE'; payload: Direction }
-  | { type: 'UNDO' }
-  | { type: 'CONTINUE' };
+import {
+  hydrateState,
+  persistGame,
+  readBestScore,
+  readSavedGame,
+} from '../game/persistence';
+import type { Direction, GameAction, GameState, GameStatus } from '../types/game';
 
 function createIdGenerator(start = 1) {
   let nextId = start;
   return () => nextId++;
 }
 
-function readBestScore() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.best);
-    return raw ? Number.parseInt(raw, 10) || 0 : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function readSavedGame(): Partial<GameState> | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.game);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function persistGame(state: GameState) {
-  try {
-    localStorage.setItem(STORAGE_KEYS.best, String(state.best));
-    localStorage.setItem(
-      STORAGE_KEYS.game,
-      JSON.stringify({
-        tiles: state.tiles,
-        score: state.score,
-        status: state.status,
-        keepPlaying: state.keepPlaying,
-        history: state.history,
-      }),
-    );
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function createFreshState(best: number): GameState {
+export function createFreshState(best: number): GameState {
   const idGen = createIdGenerator();
   const tiles = createInitialTiles(idGen);
   const maxId = tiles.reduce((max, t) => Math.max(max, t.id), 0);
@@ -71,28 +34,16 @@ function createFreshState(best: number): GameState {
   };
 }
 
-function hydrateState(saved: Partial<GameState>, best: number): GameState {
-  const tiles = saved.tiles ?? [];
-  const maxId = tiles.reduce((max, tile) => Math.max(max, tile.id), 0);
-
-  return {
-    tiles,
-    score: saved.score ?? 0,
-    best: Math.max(best, saved.score ?? 0),
-    status: (saved.status as GameStatus) ?? 'playing',
-    keepPlaying: saved.keepPlaying ?? false,
-    history: (saved.history as GameSnapshot[]) ?? [],
-    nextId: maxId + 1,
-  };
+export function createInitialGameState(): GameState {
+  const best = readBestScore();
+  const saved = readSavedGame();
+  return saved ? hydrateState(saved, best) : createFreshState(best);
 }
 
-function gameReducer(state: GameState, action: GameAction): GameState {
+export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
-    case 'NEW_GAME': {
-      const fresh = createFreshState(state.best);
-      persistGame(fresh);
-      return fresh;
-    }
+    case 'NEW_GAME':
+      return createFreshState(state.best);
 
     case 'MOVE': {
       if (state.status === 'over' || (state.status === 'won' && !state.keepPlaying)) {
@@ -107,15 +58,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       const score = state.score + result.gained;
       const best = Math.max(state.best, score);
-      let status: GameStatus = state.status;
-
-      if (result.won && !state.keepPlaying) {
-        status = 'won';
-      } else if (!canMove(result.tiles)) {
-        status = 'over';
-      } else {
-        status = 'playing';
-      }
+      const status: GameStatus =
+        result.won && !state.keepPlaying
+          ? 'won'
+          : !canMove(result.tiles)
+            ? 'over'
+            : 'playing';
 
       return {
         ...state,
@@ -145,13 +93,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'CONTINUE': {
+    case 'CONTINUE':
       return {
         ...state,
         keepPlaying: true,
         status: 'playing',
       };
-    }
 
     default:
       return state;
@@ -175,15 +122,14 @@ const KEY_TO_DIRECTION: Record<string, Direction> = {
 
 export function useGame() {
   const [gameKey, setGameKey] = useState(0);
-  const [state, dispatch] = useReducer(gameReducer, undefined, () => {
-    const best = readBestScore();
-    const saved = readSavedGame();
-    return saved ? hydrateState(saved, best) : createFreshState(best);
-  });
+  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
 
   // Ref used to read current state inside event listeners without stale closures.
   const stateRef = useRef(state);
-  stateRef.current = state;
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     persistGame(state);

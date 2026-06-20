@@ -4,7 +4,7 @@ import {
   START_TILES,
   WIN_VALUE,
 } from './constants';
-import type { Direction, IdGenerator, MoveResult, Tile } from '../types/game';
+import type { Direction, IdGenerator, MoveResult, RandomFn, Tile } from '../types/game';
 
 type Grid = Array<Array<Tile | null>>;
 
@@ -38,12 +38,12 @@ function getEmptyCells(tiles: Tile[]) {
   return empty;
 }
 
-function randomSpawnValue() {
-  return Math.random() < SPAWN_4_PROBABILITY ? 4 : 2;
+function randomSpawnValue(rng: RandomFn) {
+  return rng() < SPAWN_4_PROBABILITY ? 4 : 2;
 }
 
-function pickRandomCell(cells: Array<{ row: number; col: number }>) {
-  return cells[Math.floor(Math.random() * cells.length)];
+function pickRandomCell(cells: Array<{ row: number; col: number }>, rng: RandomFn) {
+  return cells[Math.floor(rng() * cells.length)];
 }
 
 function buildGrid(tiles: Tile[]): Grid {
@@ -162,28 +162,35 @@ function collectTiles(grid: Grid): Tile[] {
   return tiles;
 }
 
-export function createInitialTiles(idGen: IdGenerator): Tile[] {
+export function createInitialTiles(
+  idGen: IdGenerator,
+  rng: RandomFn = Math.random,
+): Tile[] {
   let tiles: Tile[] = [];
 
   for (let i = 0; i < START_TILES; i += 1) {
-    const result = spawnTile(tiles, idGen);
+    const result = spawnTile(tiles, idGen, rng);
     tiles = result.tiles;
   }
 
   return tiles;
 }
 
-export function spawnTile(tiles: Tile[], idGen: IdGenerator) {
+export function spawnTile(
+  tiles: Tile[],
+  idGen: IdGenerator,
+  rng: RandomFn = Math.random,
+) {
   const emptyCells = getEmptyCells(tiles);
 
   if (emptyCells.length === 0) {
     return { tiles, tile: null as Tile | null };
   }
 
-  const { row, col } = pickRandomCell(emptyCells);
+  const { row, col } = pickRandomCell(emptyCells, rng);
   const tile: Tile = {
     id: idGen(),
-    value: randomSpawnValue(),
+    value: randomSpawnValue(rng),
     row,
     col,
     isNew: true,
@@ -196,7 +203,12 @@ export function spawnTile(tiles: Tile[], idGen: IdGenerator) {
   };
 }
 
-export function move(tiles: Tile[], direction: Direction, idGen: IdGenerator): MoveResult {
+export function move(
+  tiles: Tile[],
+  direction: Direction,
+  idGen: IdGenerator,
+  rng: RandomFn = Math.random,
+): MoveResult {
   const workingTiles = clearAnimationFlags(cloneTiles(tiles));
   const grid = buildGrid(workingTiles);
   const mergedIds = new Set<number>();
@@ -216,11 +228,11 @@ export function move(tiles: Tile[], direction: Direction, idGen: IdGenerator): M
   }
 
   if (!moved) {
-    return { tiles: cloneTiles(tiles), gained: 0, moved: false, won: false };
+    return { tiles, gained: 0, moved: false, won: false };
   }
 
   const nextTiles = collectTiles(grid);
-  const spawnResult = spawnTile(nextTiles, idGen);
+  const spawnResult = spawnTile(nextTiles, idGen, rng);
 
   return { tiles: spawnResult.tiles, gained, moved: true, won };
 }

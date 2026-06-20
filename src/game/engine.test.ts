@@ -82,6 +82,7 @@ describe('engine', () => {
     const result = move(tiles, 'left', createIdGen(2));
 
     expect(result.moved).toBe(false);
+    expect(result.tiles).toBe(tiles);
     expect(result.tiles).toHaveLength(1);
   });
 
@@ -222,5 +223,45 @@ describe('engine', () => {
     const result = spawnTile(tiles, createIdGen(17));
     expect(result.tile).toBeNull();
     expect(result.tiles).toHaveLength(16);
+  });
+
+  it('spawns deterministically with injected rng', () => {
+    const tiles = [makeTile(1, 2, 0, 0)];
+    let call = 0;
+    const rng = () => {
+      const values = [0, 0.5];
+      return values[call++ % values.length];
+    };
+
+    const result = spawnTile(tiles, createIdGen(2), rng);
+
+    expect(result.tile).toMatchObject({ row: 0, col: 1, value: 2 });
+  });
+
+  it('spawns a 4 when rng is below spawn threshold', () => {
+    const tiles = [makeTile(1, 2, 0, 0)];
+    let call = 0;
+    const rng = () => {
+      const values = [0, 0.05];
+      return values[call++ % values.length];
+    };
+
+    const result = spawnTile(tiles, createIdGen(2), rng);
+
+    expect(result.tile?.value).toBe(4);
+  });
+
+  it('follows the 90/10 spawn value distribution', () => {
+    const tiles = [makeTile(1, 2, 0, 0)];
+    const values: number[] = [];
+
+    for (let i = 0; i < 100; i += 1) {
+      const rng = () => i / 100;
+      const result = spawnTile(tiles, createIdGen(2 + i), rng);
+      values.push(result.tile!.value);
+    }
+
+    const fours = values.filter((value) => value === 4).length;
+    expect(fours).toBe(10);
   });
 });

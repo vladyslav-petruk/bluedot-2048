@@ -38,6 +38,8 @@ export default function Board({ tiles, onSwipe, status }: BoardProps) {
     });
 
     if (ghosts.length > 0) {
+      // Ghost tiles are derived from the previous render and cleared on a timer.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional merge animation
       setGhostTiles(ghosts);
       const timer = window.setTimeout(() => setGhostTiles([]), 140);
       prevTilesRef.current = tiles;

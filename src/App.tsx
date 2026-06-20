@@ -3,6 +3,7 @@ import Footer from './components/Footer/Footer';
 import Header from './components/Header/Header';
 import Overlay from './components/Overlay/Overlay';
 import UndoButton from './components/UndoButton/UndoButton';
+import { GRID_SIZE } from './game/constants';
 import { useGame } from './hooks/useGame';
 import styles from './App.module.css';
 
@@ -21,7 +22,7 @@ export default function App() {
   } = useGame();
 
   return (
-    <div className={styles.app}>
+    <div className={styles.app} style={{ ['--grid-size' as string]: GRID_SIZE }}>
       <main className={styles.main}>
         <Header score={score} best={best} onNewGame={newGame} />
 

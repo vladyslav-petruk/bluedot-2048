@@ -33,7 +33,8 @@
   --cell-gap: 4px;
   --board-padding: 15px;
   --tile-radius: 12px;
-  --board-size: calc(4 * var(--cell-size) + 5 * var(--cell-gap));
+  --grid-size: 4;
+  --board-size: calc(var(--grid-size) * var(--cell-size) + (var(--grid-size) + 1) * var(--cell-gap));
 }
 
 html {
